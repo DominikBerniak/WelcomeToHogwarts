@@ -22,7 +22,7 @@ namespace WelcomeToHogwarts.Services.Implementations
 
         public async Task<AssignStudentStatusDto> AssignStudentToRoom(AssignStudentDto data)
         {
-            var assingStatus = new AssignStudentStatusDto
+            var assignStatus = new AssignStudentStatusDto
             {
                 RoomNumber = data.RoomNumber,
                 StudentName = data.StudentName
@@ -31,29 +31,30 @@ namespace WelcomeToHogwarts.Services.Implementations
             var student = await _studentRepository.GetByProperty(s => s.Name == data.StudentName);
             if (student is null)
             {
-                assingStatus.Status = Status.NotFound;
-                assingStatus.StatusMessage = "No such student";
-                return assingStatus;
+                assignStatus.Status = Status.NotFound;
+                assignStatus.StatusMessage = "No such student";
+                return assignStatus;
             }
 
             var room = await _roomRepository.GetByProperty(r => r.Number == data.RoomNumber);
             if (room is null)
             {
-                assingStatus.Status = Status.NotFound;
-                assingStatus.StatusMessage = "No such room";
-                return assingStatus;
+                assignStatus.Status = Status.NotFound;
+                assignStatus.StatusMessage = "No such room";
+                return assignStatus;
             }
             else if (room.Residents.Count == room.Capacity)
             {
-                assingStatus.Status = Status.BadRequest;
-                assingStatus.StatusMessage = "Room full";
-                return assingStatus;
+                assignStatus.Status = Status.BadRequest;
+                assignStatus.StatusMessage = "Room full";
+                return assignStatus;
             }
             room.Residents.Add(student);
+            student.RoomId = room.Id;
             await _studentRepository.Edit(student);
-            assingStatus.Status = Status.Ok;
-            assingStatus.StatusMessage = "Successfully assigned student to room";
-            return assingStatus;
+            assignStatus.Status = Status.Ok;
+            assignStatus.StatusMessage = "Successfully assigned student to room";
+            return assignStatus;
         }
 
         public async Task<List<Student>> GetAllStudents()
