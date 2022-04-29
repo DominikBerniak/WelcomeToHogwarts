@@ -45,7 +45,7 @@ namespace WelcomeToHogwarts.Services.Implementations
                 {
                     Name = ingredientData.Name,
                 };
-                newIngredient = await _ingredientRepository.Add(newIngredient);
+                await _ingredientRepository.Add(newIngredient);
                 potion.Ingredients.Add(newIngredient);
             }
             else
@@ -54,7 +54,7 @@ namespace WelcomeToHogwarts.Services.Implementations
             }
             if (potion.Ingredients.Count < 5)
             {
-                potion = await _potionRepository.Edit(potion);
+                await _potionRepository.Edit(potion);
                 potionStatus.Status = Status.Updated;
                 potionStatus.StatusMessage = "Successfully added a ingredient to this potion";
                 potionStatus.Potion = potion;
@@ -84,12 +84,12 @@ namespace WelcomeToHogwarts.Services.Implementations
                     Maker = maker,
                     Ingredients = potion.Ingredients
                 };
-                newRecipe = await _recipeRepository.Add(newRecipe);
+                await _recipeRepository.Add(newRecipe);
 
                 potion.BrewingStatus = BrewingStatus.Discovery;
                 potion.Recipe = newRecipe;
             }
-            potion = await _potionRepository.Edit(potion);
+            await _potionRepository.Edit(potion);
             potionStatus.Status = Status.Ok;
             potionStatus.StatusMessage = "Your potions is done";
             potionStatus.Potion = potion;
