@@ -298,5 +298,108 @@ namespace WelcomeToHogwarts.Tests
             Assert.Equal($"{potion.Maker.Name}'s Discovery #1", result.Potion.Recipe.Name);
             Assert.Equal(potion.Maker.Name, result.Potion.Recipe.Maker.Name);
         }
+
+        [Fact]
+        public async Task BrewPotion_NoMakerShouldFail()
+        {
+            // Arrange
+            var potionData = new BasePotionDto();
+
+            var createPotionStatus = new CreatePotionStatusDto
+            {
+                Status = Status.NotFound,
+                StatusMessage = "No such student"
+            };
+
+            _studentRepository.GetByProperty(s => s.Name.ToLower() == potionData.MakerName.ToLower()).ReturnsNull();
+            // Act
+            var result = await _sut.BrewPotion(potionData);
+            // Assert 
+            Assert.Equal(createPotionStatus.Status, result.Status);
+            Assert.Equal(createPotionStatus.StatusMessage, result.StatusMessage);
+        }
+
+        [Fact]
+        public async Task BrewPotion_ShouldCreateNewPotion()
+        {
+            // Arrange
+            var potionData = new BasePotionDto{
+                MakerName = "Harry Potter",
+                PotionName = "Potion"
+            };
+            var maker = new Student
+            {
+                Name = potionData.MakerName
+            };
+
+            var createPotionStatus = new CreatePotionStatusDto
+            {
+                Status = Status.Created,
+                StatusMessage = "Successfully brewed a new potion"
+            };
+
+            _studentRepository.GetByProperty(s => s.Name.ToLower() == potionData.MakerName.ToLower()).ReturnsForAnyArgs(maker);
+            // Act
+            var result = await _sut.BrewPotion(potionData);
+            // Assert 
+            Assert.Equal(createPotionStatus.Status, result.Status);
+            Assert.Equal(createPotionStatus.StatusMessage, result.StatusMessage);
+            Assert.Equal(potionData.PotionName, result.Potion.Name);
+            Assert.Equal(potionData.MakerName, result.Potion.Maker.Name);
+            Assert.Equal(BrewingStatus.Brew, result.Potion.BrewingStatus);
+        }
+
+        [Fact]
+        public async Task GetPotionsByRecipeId_NoPotionsShouldFail()
+        {
+            // Arrange
+            var recipeId = Guid.NewGuid();
+            var potionsStatus = new GetPotionsStatusDto
+            {
+                Status = Status.NotFound,
+                StatusMessage = "No potions for given recipe"
+            };
+
+            _potionRepository.GetAllPotionsByProperty(p => p.Recipe.Id == recipeId).ReturnsNull();
+
+            // Act
+            var result = await _sut.GetPotionsByRecipeId(recipeId);
+            // Assert 
+            Assert.Equal(potionsStatus.Status, result.Status);
+            Assert.Equal(potionsStatus.StatusMessage, result.StatusMessage);
+        }
+
+        [Fact]
+        public async Task GetPotionsByRecipeId_ShouldReturnExistingPotions()
+        {
+            // Arrange
+            var recipeId = Guid.NewGuid();
+            var potions = new List<Potion>
+            {
+                new Potion
+                {
+                    Name = "Potion 1"
+                },
+                new Potion
+                {
+                    Name = "Potion 2"
+                }
+            };
+
+            var potionsStatus = new GetPotionsStatusDto
+            {
+                Status = Status.Ok,
+                Potions = potions
+            };
+
+            _potionRepository.GetAllPotionsByProperty(p => p.Recipe.Id == recipeId).ReturnsForAnyArgs(potions);
+
+            // Act
+            var result = await _sut.GetPotionsByRecipeId(recipeId);
+            // Assert 
+            Assert.Equal(potionsStatus.Status, result.Status);
+            Assert.Equal(potionsStatus.Potions, result.Potions);
+            Assert.Equal(potionsStatus.Potions[0].Name, result.Potions[0].Name);
+        }
     }
 }

@@ -166,7 +166,7 @@ namespace WelcomeToHogwarts.Services.Implementations
                 Maker = maker,
                 BrewingStatus = BrewingStatus.Brew
             };
-            newPotion = await _potionRepository.Add(newPotion);
+            await _potionRepository.Add(newPotion);
             createPotionStatus.Status = Status.Created;
             createPotionStatus.StatusMessage = "Successfully brewed a new potion";
             createPotionStatus.Potion = newPotion;
